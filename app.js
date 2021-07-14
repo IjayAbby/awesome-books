@@ -1,116 +1,135 @@
-function localStorageAvailable() {
-  let storage;
-
-  try {
-    storage = window.localStorage;
-    const x = '__storage_test__';
-    storage.setItem(x, x);
-    storage.removeItem(x);
-    return true;
-  } catch (e) {
-    return e instanceof DOMException && (
-      // everything except Firefox
-      e.code === 22
-      // Firefox
-      || e.code === 1014
-      // test name field too, because code might not be present
-      // everything except Firefox
-      || e.name === 'QuotaExceededError'
-      // Firefox
-      || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')
-      // acknowledge QuotaExceededError only if there's something already stored
-      && (storage && storage.length !== 0);
+// Book Class: Represents a Book
+class Book {
+  constructor(title, author) {
+    this.title = title;
+    this.author = author;
   }
 }
 
-function setItem(name, item) {
-  if (localStorageAvailable()) {
-    localStorage.setItem(name, item);
+// Store Class: Handles Storage
+class Store {
+  static getBooks() {
+    let books;
+    if (localStorage.getItem('books') === null) {
+      books = [];
+    } else {
+      books = JSON.parse(localStorage.getItem('books'));
+    }
+
+    return books;
+  }
+
+  static addBook(book) {
+    const books = Store.getBooks();
+    books.push(book);
+    localStorage.setItem('books', JSON.stringify(books));
+  }
+
+  static removeBook(index) {
+    const books = Store.getBooks();
+
+    // books.forEach((book, index) => {
+    //   if (index === i) {
+    books.splice(index, 1);
+    //   }
+    // });
+
+    localStorage.setItem('books', JSON.stringify(books));
   }
 }
 
-function getItem(name) {
-  if (localStorageAvailable()) {
-    return localStorage.getItem(name);
+// UI Class: Handle UI Tasks
+class UI {
+  static displayBooks() {
+    const books = Store.getBooks();
+
+    books.forEach((book) => UI.addBookToList(book));
   }
 
-  return null;
+  static addBookToList(book) {
+    const list = document.querySelector('#book-list');
+
+    const item = document.createElement('li');
+
+    item.innerHTML = `
+      <p>"${book.title}" by ${book.author}</p>
+      <a href="#" class="btn btn-outline-primary btn-sm bg-white">Remove</a>
+    `;
+
+    item.classList.add('d-flex');
+    item.classList.add('justify-content-between');
+    list.appendChild(item);
+  }
+
+  static deleteBook(el) {
+    if (el.textContent === 'Remove') {
+      el.parentElement.remove();
+    }
+  }
+
+  static showAlert(message, className) {
+    const div = document.createElement('div');
+    div.className = `alert alert-${className}`;
+    div.appendChild(document.createTextNode(message));
+    const container = document.querySelector('.container');
+    const div2 = document.querySelector('#div4list');
+    container.insertBefore(div, div2);
+
+    // Vanish in 3 seconds
+    setTimeout(() => document.querySelector('.alert').remove(), 3000);
+  }
+
+  static clearFields() {
+    document.querySelector('#title').value = '';
+    document.querySelector('#author').value = '';
+  }
 }
 
-/* eslint-disable no-use-before-define */
-function saveBooks() {
-  setItem('books', JSON.stringify(books));
-}
+// Event: Display Books
+document.addEventListener('DOMContentLoaded', UI.displayBooks);
 
-function getBooks() {
-  return JSON.parse(getItem('books'));
-}
+// Event: Add a Book
+document.querySelector('#book-form').addEventListener('submit', (e) => {
+  // Prevent actual submit
+  e.preventDefault();
 
-function displayBooks() {
-  const booksDiv = document.querySelector('.books');
-  booksDiv.textContent = '';
+  // Get form values
+  const title = document.querySelector('#title').value;
+  const author = document.querySelector('#author').value;
 
-  const createDiv = () => document.createElement('div');
+  // Validate
+  if (title === '' || author === '') {
+    UI.showAlert('Please fill in all fields', 'danger');
+  } else {
+    // Instatiate book
+    const book = new Book(title, author);
 
-  books.forEach((book) => {
-    const bookDiv = createDiv();
-    bookDiv.className = 'book';
+    // Add Book to UI
+    UI.addBookToList(book);
 
-    const titleDiv = createDiv();
-    titleDiv.textContent = book.title;
+    // Add book to store
+    Store.addBook(book);
 
-    const authorDiv = createDiv();
-    authorDiv.textContent = book.author;
+    // Show success message
+    UI.showAlert('Book Added', 'success');
 
-    const removeBtn = document.createElement('button');
-    removeBtn.className = ['removeBtn-', book.id].join('');
-    removeBtn.textContent = 'Remove';
-    removeBtn.addEventListener('click', (event) => {
-      const source = event.target;
-      const bookId = source.className.split('-')[1];
-
-      removeBook(bookId);
-    });
-
-    bookDiv.appendChild(titleDiv);
-    bookDiv.appendChild(authorDiv);
-    bookDiv.appendChild(removeBtn);
-
-    booksDiv.appendChild(bookDiv);
-  });
-}
-
-function saveAndDisplay() {
-  saveBooks();
-  displayBooks();
-}
-
-function addBook(title, author) {
-  const id = books.length + 1;
-  books.push({
-    id,
-    title,
-    author,
-  });
-
-  saveAndDisplay();
-}
-
-function removeBook(bookId) {
-  books = books.filter((book) => book.id != bookId); /* eslint-disable-line eqeqeq */
-  saveAndDisplay();
-}
-/* eslint-enable no-use-before-define */
-
-const addBtn = document.querySelector('#addBtn');
-addBtn.addEventListener('click', () => {
-  const inputTitle = document.querySelector('.inputTitle');
-  const inputAuthor = document.querySelector('.inputAuthor');
-
-  addBook(inputTitle.value, inputAuthor.value);
+    // Clear fields
+    UI.clearFields();
+  }
 });
 
-let books = getBooks() || [];
-if (books.length > 0) {
-  displayBooks();
-}
+// Event: Remove a Book
+document.querySelector('#book-list').addEventListener('click', (e) => {
+  const ulList = document.querySelector('#book-list');
+  const item2BeRemoved = e.target.parentElement;
+  const nodes = Array.from(ulList.children);
+
+  // Remove book from UI
+  UI.deleteBook(e.target);
+
+  // Remove book from store
+  Store.removeBook(nodes.indexOf(item2BeRemoved));
+
+  // Show success message
+  UI.showAlert('Book Removed', 'success');
+});
