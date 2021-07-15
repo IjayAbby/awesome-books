@@ -12,7 +12,7 @@ Book list app. Capable of displaying the current book list, adding and removing 
 
 - HTML
 - JavaScript
-- Bootswatch
+- Bootswatch(Sketchy theme for Bootstrap)
 - Bootstrap
 
 
