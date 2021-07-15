@@ -1,5 +1,5 @@
 /* Add styles */
 
-.book {
-  margin: 5px 0 5px 0;
+li:nth-child(odd) {
+  background-color: rgb(190, 190, 190);
 }
