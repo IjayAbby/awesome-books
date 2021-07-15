@@ -1,5 +1,15 @@
 /* Add styles */
 
+a {
+  text-decoration: none;
+}
+
 li:nth-child(odd) {
   background-color: rgb(190, 190, 190);
+}
+
+.myFooter {
+  position: absolute;
+  bottom: 0;
+  margin-left: 1em;
 }
