@@ -43,4 +43,4 @@ Give a ⭐️ if you like this project!
 
 ## 📝 License
 
-This project is [MIT](https://github.com/IjayAbby/Web-Scraper-Ruby-Capstone-Project/blob/development/LICENSE) licensed.
+This project is [MIT](https://github.com/IjayAbby/awesome-books/blob/js-classes/LICENSE) licensed.
